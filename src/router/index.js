@@ -7,7 +7,10 @@ const routes = [
     { path: '/', redirect: '/login' },
     { path: '/login', component: Login },
     { path: '/home', component: Home },
-    { path: '/order/:id', component: OrderDetail, props: true },
+    { path: '/order/:id', component: OrderDetail,
+      name: 'OrderDetail',  
+      props: route => ({ id: Number(route.params.id), order: route.params.order }) 
+    },
 ]
 
 const router = createRouter({

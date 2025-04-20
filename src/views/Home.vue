@@ -1,5 +1,7 @@
 <script setup>
 import { ref , computed} from 'vue'
+import Navbar from '@/component/Navbar.vue'
+import OrderCard from '@/component/OrderCard.vue'
 
 const orders = ref([
     {id: 1, start:'桃園高鐵', end: '男9舍', time:'17:00'},
@@ -7,7 +9,7 @@ const orders = ref([
     {id: 3, start:'桃園高鐵', end: '男9舍', time:'17:00'},
 ])
 
-//control funciton for create order
+// create order
 const showForm = ref(false)
 const newOrder = ref({
     start: '',
@@ -30,17 +32,39 @@ function addOrder() {
     showForm.value = false
 }
 
-//filter in navbar
-const selectedStart = ref('')
+// filter
+const selectFilter = ref({
+    start: '',
+    end: '',
+    time: '',
+})
+
+const selectedStart = computed(() => selectFilter.value.start)
+const selectedEnd = computed(() => selectFilter.value.end)
+const selectedTime = computed(() => selectFilter.value.time)
 
 const uniqueStartPoints = computed(() => {
     const points = orders.value.map(order => order.start)
     return [...new Set(points)]
 })
 
+const uniqueEndPoints = computed(() => {
+    const points = orders.value.map(order => order.end)
+    return [...new Set(points)]
+})
+
+const uniqueTimes = computed(() => {
+    const points = orders.value.map(order => order.time)
+    return [...new Set(points)]
+})
+
 const filteredOrders = computed(() => {
-    if(!selectedStart.value) return orders.value
-    return orders.value.filter(order => order.start === selectedStart.value)
+    return orders.value.filter(order => {
+        const matchStart = !selectedStart.value || order.start === selectedStart.value
+        const matchEnd = !selectedEnd.value || order.end === selectedEnd.value
+        const matchTime = !selectedTime.value || order.time === selectedTime.value
+        return matchStart && matchEnd && matchTime
+    })
 })
 
 </script>
@@ -50,21 +74,19 @@ const filteredOrders = computed(() => {
         <h2>OrderList</h2>
 
         <!-- navbar -->
-         <div class="navbar">
-            <label for="start">起點:</label>
-            <select v-model="selectedStart" id="start">
-                <option value="">全部</option>
-                <option v-for="loc in uniqueStartPoints" :key="loc" :value="loc">
-                    {{ loc }}
-                </option>
-            </select>
-         </div>
+        <Navbar
+            v-model="selectFilter"
+            :startOptions="uniqueStartPoints"
+            :endOptions="uniqueEndPoints"
+            :timeOptions="uniqueTimes"
+        ></Navbar>
 
+        <!-- create order -->
         <button @click="showForm = !showForm">
             {{ showForm ? 'Cancel Order' : 'Create Order' }}
         </button>
 
-        <!-- Order form -->
+        <!-- create order form -->
          <div v-if="showForm" class="order-form">
             <input type="text" v-model="newOrder.start" placeholder="起點">
             <input type="text" v-model="newOrder.end" placeholder="終點">
@@ -72,34 +94,18 @@ const filteredOrders = computed(() => {
             <button @click="addOrder">建立訂單</button>
          </div>
 
-        <div v-for="order in filteredOrders" :key="order.id" class="order-card">
-            <p>
-                <strong>起點:</strong> {{order.start}}
-                <strong>終點:</strong> {{order.end}}
-                <strong>搭車時間:</strong> {{order.time}}
-            </p>
-            <router-link   :to="`/order/${order.id}`">
-                訂單詳情
-            </router-link>
-        </div>
+        <!-- show the result -->
+        <OrderCard
+            v-for="order in filteredOrders"
+            :key="order.id"
+            :order="order"
+        ></OrderCard>
     </div>
 </template>
 
 <style scoped>
     .home {
         padding: 16px;
-    }
-
-    .navbar {
-        margin-bottom: 16px;
-    }
-
-    .order-card {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-bottom: 12px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
     }
 
     .order-form {

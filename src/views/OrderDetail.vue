@@ -5,15 +5,14 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const orders = [
-    { id: 1, start: '行政大樓', end: '男宿', time: '17:00' },
-    { id: 2, start: '圖書館', end: '體育館', time: '17:30' },
-    { id: 3, start: '女宿', end: '後門', time: '18:00' },
-]
+const order = {
+    start: route.query.start,
+    end: route.query.end,
+    time: route.query.time,
+}
 
 const orderId = Number(route.params.id)
 
-const order = orders.find(o => o.id === orderId)
 </script>
 
 <template>
