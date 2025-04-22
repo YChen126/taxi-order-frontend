@@ -2,12 +2,10 @@
 import { ref , computed} from 'vue'
 import Navbar from '@/component/Navbar.vue'
 import OrderCard from '@/component/OrderCard.vue'
+import { useOrderStore } from '@/stores/orderStore'
 
-const orders = ref([
-    {id: 1, start:'桃園高鐵', end: '男9舍', time:'17:00'},
-    {id: 2, start:'桃園高鐵', end: '男9舍', time:'17:00'},
-    {id: 3, start:'桃園高鐵', end: '男9舍', time:'17:00'},
-])
+const orderStore = useOrderStore()
+const orders =  computed(() => orderStore.orders)
 
 // create order
 const showForm = ref(false)
@@ -23,11 +21,7 @@ function addOrder() {
         return
     }
 
-    orders.value.push({
-        id: Date.now(),
-        ...newOrder.value,
-    })
-
+    orderStore.addOrder(newOrder.value)
     newOrder.value = { start: '', end: '', time: '' }
     showForm.value = false
 }
@@ -44,21 +38,23 @@ const selectedEnd = computed(() => selectFilter.value.end)
 const selectedTime = computed(() => selectFilter.value.time)
 
 const uniqueStartPoints = computed(() => {
-    const points = orders.value.map(order => order.start)
-    return [...new Set(points)]
+    if (!orders.value) return []
+    return [...new Set(orders.value.map(order => order.start))]
 })
 
 const uniqueEndPoints = computed(() => {
-    const points = orders.value.map(order => order.end)
-    return [...new Set(points)]
+    if (!orders.value) return []
+    return [...new Set(orders.value.map(order => order.end))]
 })
 
 const uniqueTimes = computed(() => {
-    const points = orders.value.map(order => order.time)
-    return [...new Set(points)]
+    if (!orders.value) return []
+    return [...new Set(orders.value.map(order => order.time))]
 })
 
 const filteredOrders = computed(() => {
+    if (!orders.value) return []
+    
     return orders.value.filter(order => {
         const matchStart = !selectedStart.value || order.start === selectedStart.value
         const matchEnd = !selectedEnd.value || order.end === selectedEnd.value
